@@ -1,0 +1,42 @@
+services:
+  backend:
+    image: node:22.14.0
+    container_name: nestjs-backend
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+    ports:
+      - '3000:3000'  # NestJS runs on port 3000 internally
+    command: >
+      sh -c "npm install &&
+              npm install -g @nestjs/cli &&  # Install NestJS CLI globally
+              npx prisma generate &&         # Generate Prisma client
+              npm run build &&
+              npm run start:prod"            # Adjust commands as necessary based on your package.json
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - database  # Ensure the database service is started before the backend
+
+  database:
+    image: nouchka/sqlite3  # Lightweight SQLite image
+    container_name: sqlite-database
+    volumes:
+      - ./backend/prisma/dev.db:/data/dev.db  # Mount the SQLite database file
+    command: sh -c "tail -f /dev/null"  # Keep the container running
+
+  frontend:
+    image: node:22.14.0
+    container_name: react-frontend
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    ports:
+      - '4200:4200'  # React runs on port 4200 internally
+    command: >
+      sh -c "npm install &&
+              npm run build &&
+              npm install -g serve &&
+              serve -s build -l 4200"  # Adjust commands as necessary based on your package.json
+    environment:
+      - NODE_ENV=production
