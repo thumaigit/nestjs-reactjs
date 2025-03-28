@@ -9,21 +9,26 @@ services:
       - '3000:3000'  # NestJS runs on port 3000 internally
     command: >
       sh -c "npm install &&
-              npm install -g @nestjs/cli &&  # Install NestJS CLI globally
-              npx prisma generate &&         # Generate Prisma client
+              npm install -g @nestjs/cli &&          # Install NestJS CLI globally
+              npx prisma db push &&                  # Push the Prisma schema to the database
+              npx prisma migrate reset --force &&    # Reset the database and apply migrations
+              npx prisma migrate deploy &&           # Apply migrations
+              npx prisma generate &&                 # Generate Prisma client
+              npm run database:seed &&               # Seed the database
               npm run build &&
-              npm run start:prod"            # Adjust commands as necessary based on your package.json
+              npm run start:prod"                    # Adjust commands as necessary based on your package.json
     environment:
       - NODE_ENV=production
+      - DATABASE_URL=file:/data/dev.db  # SQLite connection string
     depends_on:
       - database  # Ensure the database service is started before the backend
 
   database:
-    image: nouchka/sqlite3  # Lightweight SQLite image
+    image: alpine  # Lightweight base image
     container_name: sqlite-database
     volumes:
       - ./backend/prisma/dev.db:/data/dev.db  # Mount the SQLite database file
-    command: sh -c "tail -f /dev/null"  # Keep the container running
+    command: sh -c "echo 'SQLite database ready'"  # Simple command to keep the container valid
 
   frontend:
     image: node:22.14.0

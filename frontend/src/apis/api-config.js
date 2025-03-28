@@ -1,5 +1,5 @@
-const host = 'fantastic-goggles-6pjv49j4r57hg-3000.app.github.dev';
-const apiRoot = `https://${host}/api/`;
+const host = 'localhost:3000'; // Replace with your API host
+const apiRoot = `http://${host}/api/`;
 
 
 export const get = async (path, options) => {
